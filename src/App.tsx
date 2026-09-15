@@ -3,6 +3,7 @@ import { BuyerSelector } from './components/BuyerSelector'
 import { DateFilter } from './components/DateFilter'
 import { DebtMatrix } from './components/DebtMatrix'
 import { AnalyticsDashboard } from './components/AnalyticsDashboard'
+import { BankQrWidget } from './components/BankQrWidget'
 import { ItemSelector } from './components/ItemSelector'
 import { MemberList } from './components/MemberList'
 import { MenuManager } from './components/MenuManager'
@@ -419,6 +420,7 @@ function App() {
 
   return (
     <main className="cute-app min-h-screen bg-slate-50 text-slate-800">
+      <BankQrWidget />
       <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
         <header className="cute-header rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <h1 className="text-2xl font-bold text-slate-900">KV Order</h1>
