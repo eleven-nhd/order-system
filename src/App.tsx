@@ -423,7 +423,7 @@ function App() {
       <BankQrWidget />
       <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
         <header className="cute-header rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h1 className="text-2xl font-bold text-slate-900">KV Order</h1>
+          <h1 className="text-2xl font-bold text-slate-900">Tuần 0 cữ</h1>
           <p className="mt-1 text-sm text-slate-500">
             Quản lý đặt đồ ăn, đồ uống và thống kê chi tiêu của nhóm.
           </p>
