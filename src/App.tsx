@@ -166,7 +166,7 @@ function App() {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([])
   const [orders, setOrders] = useState<OrderRecord[]>([])
   const [debtPayments, setDebtPayments] = useState<DebtPayment[]>([])
-  const [datePreset, setDatePreset] = useState<DatePreset>('today')
+  const [datePreset, setDatePreset] = useState<DatePreset>('month')
   const [customStartDate, setCustomStartDate] = useState('')
   const [customEndDate, setCustomEndDate] = useState('')
   const [buyerId, setBuyerId] = useState<number | ''>('')
