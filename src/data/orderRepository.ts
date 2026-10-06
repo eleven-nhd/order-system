@@ -171,8 +171,8 @@ export async function createDebtPayment(
   throwIfError(error, 'Không thể lưu khoản trả nợ.')
 }
 
-export async function getDebtPayments(): Promise<DebtPayment[]> {
-  const { data, error } = await supabase
+export async function getDebtPayments(range: DateRange): Promise<DebtPayment[]> {
+  let queryBuilder = supabase
     .from('debt_payments')
     .select(
       `
@@ -187,6 +187,15 @@ export async function getDebtPayments(): Promise<DebtPayment[]> {
     )
     .order('paid_at', { ascending: false })
 
+  if (range.start) {
+    queryBuilder = queryBuilder.gte('paid_at', range.start)
+  }
+
+  if (range.end) {
+    queryBuilder = queryBuilder.lt('paid_at', range.end)
+  }
+
+  const { data, error } = await queryBuilder
   throwIfError(error, 'Không thể tải lịch sử trả nợ.')
 
   return ((data ?? []) as unknown as SupabaseDebtPaymentRow[]).map((row) => ({
@@ -372,4 +381,3 @@ export async function getOrders(range: DateRange): Promise<OrderRecord[]> {
       })),
   }))
 }
-

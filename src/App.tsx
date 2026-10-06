@@ -207,7 +207,7 @@ function App() {
   }
 
   const loadDebtPayments = async () => {
-    setDebtPayments(await getDebtPayments())
+    setDebtPayments(await getDebtPayments(dateRange))
   }
 
   useEffect(() => {
@@ -215,17 +215,15 @@ function App() {
 
     const loadInitial = async () => {
       try {
-        const [userRows, menuRows, paymentRows] = await Promise.all([
+        const [userRows, menuRows] = await Promise.all([
           getUsers(),
           getMenuItems(),
-          getDebtPayments(),
         ])
 
         if (cancelled) return
 
         setUsers(userRows)
         setMenuItems(menuRows)
-        setDebtPayments(paymentRows)
       } catch (error) {
         if (cancelled) return
         const message = error instanceof Error ? error.message : 'Đã có lỗi xảy ra.'
@@ -249,9 +247,13 @@ function App() {
 
     const loadByDateRange = async () => {
       try {
-        const orderRows = await getOrders(currentRange)
+        const [orderRows, paymentRows] = await Promise.all([
+          getOrders(currentRange),
+          getDebtPayments(currentRange),
+        ])
         if (!cancelled) {
           setOrders(orderRows)
+          setDebtPayments(paymentRows)
         }
       } catch (error) {
         if (cancelled) return
