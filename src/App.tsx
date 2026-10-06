@@ -165,7 +165,9 @@ function App() {
   const [users, setUsers] = useState<User[]>([])
   const [menuItems, setMenuItems] = useState<MenuItem[]>([])
   const [orders, setOrders] = useState<OrderRecord[]>([])
+  const [settlementOrders, setSettlementOrders] = useState<OrderRecord[]>([])
   const [debtPayments, setDebtPayments] = useState<DebtPayment[]>([])
+  const [settlementPayments, setSettlementPayments] = useState<DebtPayment[]>([])
   const [datePreset, setDatePreset] = useState<DatePreset>('month')
   const [customStartDate, setCustomStartDate] = useState('')
   const [customEndDate, setCustomEndDate] = useState('')
@@ -181,7 +183,10 @@ function App() {
     () => toDateRange(datePreset, { startDate: customStartDate, endDate: customEndDate }),
     [customEndDate, customStartDate, datePreset],
   )
-  const debts = useMemo(() => computeNetDebts(orders, users, debtPayments), [debtPayments, orders, users])
+  const debts = useMemo(
+    () => computeNetDebts(settlementOrders, users, settlementPayments),
+    [settlementOrders, settlementPayments, users],
+  )
 
   const runSafe = async (work: () => Promise<void>) => {
     try {
@@ -208,6 +213,16 @@ function App() {
 
   const loadDebtPayments = async () => {
     setDebtPayments(await getDebtPayments(dateRange))
+  }
+
+  const loadSettlementData = async () => {
+    const settlementRange = { start: null, end: dateRange.end }
+    const [orderRows, paymentRows] = await Promise.all([
+      getOrders(settlementRange),
+      getDebtPayments(settlementRange),
+    ])
+    setSettlementOrders(orderRows)
+    setSettlementPayments(paymentRows)
   }
 
   useEffect(() => {
@@ -247,13 +262,18 @@ function App() {
 
     const loadByDateRange = async () => {
       try {
-        const [orderRows, paymentRows] = await Promise.all([
+        const settlementRange = { start: null, end: currentRange.end }
+        const [orderRows, paymentRows, settlementOrderRows, settlementPaymentRows] = await Promise.all([
           getOrders(currentRange),
           getDebtPayments(currentRange),
+          getOrders(settlementRange),
+          getDebtPayments(settlementRange),
         ])
         if (!cancelled) {
           setOrders(orderRows)
           setDebtPayments(paymentRows)
+          setSettlementOrders(settlementOrderRows)
+          setSettlementPayments(settlementPaymentRows)
         }
       } catch (error) {
         if (cancelled) return
@@ -280,6 +300,7 @@ function App() {
       await updateUser(id, name)
       await loadUsers()
       await loadOrders()
+      await loadSettlementData()
     })
   }
 
@@ -369,6 +390,7 @@ function App() {
 
       await createDebtPayment(debt.fromUserId, debt.toUserId, Math.min(amount, debt.amount))
       await loadDebtPayments()
+      await loadSettlementData()
       setNoticeMessage('Đã ghi nhận khoản trả nợ.')
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Không thể ghi nhận trả nợ.'
@@ -411,6 +433,7 @@ function App() {
         const deletedPaymentCount = await deleteDebtPaymentsByDateRange(dateRange)
         await loadOrders()
         await loadDebtPayments()
+        await loadSettlementData()
         setNoticeMessage(
           `Đã xóa ${deletedCount} hóa đơn và ${deletedPaymentCount} khoản trả nợ trong phạm vi "${label}".`,
         )
