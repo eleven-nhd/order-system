@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import type { MenuItem, MenuItemType } from '../types'
 import { formatMoney } from '../utils/money'
 
@@ -17,6 +17,8 @@ export function MenuManager({ items, onCreate, onUpdate, onDelete }: MenuManager
   const [editingName, setEditingName] = useState('')
   const [editingPrice, setEditingPrice] = useState('')
   const [editingType, setEditingType] = useState<MenuItemType>('food')
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(5)
 
   const resetCreateForm = () => {
     setName('')
@@ -44,6 +46,13 @@ export function MenuManager({ items, onCreate, onUpdate, onDelete }: MenuManager
     await onUpdate(id, editingName, parsedPrice, editingType)
     setEditingId(null)
   }
+
+  const totalPages = Math.max(1, Math.ceil(items.length / pageSize))
+  const visiblePage = Math.min(currentPage, totalPages)
+  const paginatedItems = useMemo(() => {
+    const startIndex = (visiblePage - 1) * pageSize
+    return items.slice(startIndex, startIndex + pageSize)
+  }, [items, pageSize, visiblePage])
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -94,7 +103,7 @@ export function MenuManager({ items, onCreate, onUpdate, onDelete }: MenuManager
             </tr>
           </thead>
           <tbody>
-            {items.map((item) => (
+            {paginatedItems.map((item) => (
               <tr key={item.id} className="border-b border-slate-100">
                 {editingId === item.id ? (
                   <>
@@ -171,7 +180,7 @@ export function MenuManager({ items, onCreate, onUpdate, onDelete }: MenuManager
                 )}
               </tr>
             ))}
-            {items.length === 0 && (
+            {paginatedItems.length === 0 && (
               <tr>
                 <td colSpan={4} className="p-2 text-slate-500">
                   Chưa có món nào trong menu.
@@ -181,7 +190,52 @@ export function MenuManager({ items, onCreate, onUpdate, onDelete }: MenuManager
           </tbody>
         </table>
       </div>
+
+      {items.length > 0 && (
+        <div className="mt-4 flex flex-col gap-3 text-sm text-slate-600 sm:flex-row sm:items-center sm:justify-between">
+          <p>
+            Hiển thị {(visiblePage - 1) * pageSize + 1}-
+            {Math.min(visiblePage * pageSize, items.length)} trên {items.length} món
+          </p>
+          <div className="flex flex-wrap items-center gap-2">
+            <label htmlFor="menu-page-size">Số món/trang</label>
+            <select
+              id="menu-page-size"
+              value={pageSize}
+              onChange={(event) => {
+                setPageSize(Number(event.target.value))
+                setCurrentPage(1)
+              }}
+              className="rounded-md border border-slate-300 px-2 py-1 outline-none ring-violet-200 focus:ring"
+            >
+              {[5, 10, 15, 20, 25, 50].map((size) => (
+                <option key={size} value={size}>
+                  {size}
+                </option>
+              ))}
+            </select>
+            <button
+              type="button"
+              onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+              disabled={visiblePage === 1}
+              className="rounded-md border border-slate-300 px-3 py-1 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Trước
+            </button>
+            <span>
+              Trang {visiblePage}/{totalPages}
+            </span>
+            <button
+              type="button"
+              onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+              disabled={visiblePage === totalPages}
+              className="rounded-md border border-slate-300 px-3 py-1 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Sau
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
-
