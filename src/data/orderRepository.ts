@@ -146,6 +146,17 @@ export async function updateMenuItem(
 }
 
 export async function deleteMenuItem(id: number): Promise<void> {
+  const { data: orderDetails, error: orderDetailsError } = await supabase
+    .from('orderdetails')
+    .select('id')
+    .eq('item_id', id)
+    .limit(1)
+
+  throwIfError(orderDetailsError, 'Không thể kiểm tra lịch sử hóa đơn của món ăn.')
+  if (orderDetails && orderDetails.length > 0) {
+    throw new Error('Không thể xóa món ăn vì món này đã phát sinh hóa đơn.')
+  }
+
   const { error } = await supabase.from('menuitems').delete().eq('id', id)
   throwIfError(error, 'Không thể xóa món ăn.')
 }
